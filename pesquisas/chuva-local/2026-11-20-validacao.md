@@ -38,3 +38,18 @@ A remoção se aplica à interpolação e aos vizinhos do filtro. O conjunto de 
 Os dois filtros adaptativos permanecem congelados. O limite de 10 mm/h venceu o de 5 mm/h no desenvolvimento sueco (junho e julho) e será a comparação de referência. Agosto teve apenas quatro eventos pelo critério definido, com 33 pares de chuva forte. O filtro com vizinhos marcou erro de 1,501 mm contra 1,584 mm no limite fixo. A fusão sem filtro marcou 1,465 mm nesse recorte. Esse primeiro número, sozinho, permite apenas um parecer exploratório.
 
 Antes de consultar as métricas italianas, iniciei o download de junho a agosto de 2021 para verificar se o resultado de 2022 se repete sob outra temporada na mesma rede. A comparação acrescenta variação temporal, e a Suécia já foi usada para congelar o comparador. Os campos de fusão publicados pelos autores também serão medidos sobre a mesma referência para situar a utilidade prática de trabalhar apenas com interpolação aditiva.
+
+### Resultados reservados · Agosto sueco e verão italiano de 2022
+
+| Rede e recorte | Eventos | Pares ≥5 mm | Radar | Fixo 10 | Intensidade | Intensidade e vizinhos |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Suécia, agosto de 2015 | 4 | 33 | 2,798 | 1,584 | 1,604 | 1,501 |
+| Itália, junho a agosto de 2022 | 36 | 2.023 | 5,675 | 5,118 | 5,013 | 5,014 |
+
+Valores de erro absoluto médio, em mm, nos pares hora–pluviômetro com pelo menos 5 mm registrados. Na Itália, a diferença do filtro por intensidade para o fixo foi −0,105 mm, com intervalo de 95% de −0,351 a +0,004 mm por reamostragem de eventos. Com vizinhos, o intervalo foi de −0,372 a +0,012 mm. O fixo detectou 83,44% das chuvas fortes, com 1.326 falsos alarmes. Os filtros adaptativos detectaram 82,20%, com 1.239 e 1.233 falsos alarmes. O ganho médio teve esse custo de detecção.
+
+O filtro com vizinhos teve os oito vizinhos exigidos em 95,2% das observações elegíveis na Suécia e 10,6% na Itália. Nas 24 reduções a 50% da rede, o suporte mediano ficou em 82,7% na Suécia e 0,0% na Itália. Na Suécia, com 10% dos enlaces, o sinal da diferença mediana do filtro com vizinhos para o fixo passou de −0,083 mm para +0,080 mm. Os testes de redução mantiveram as mesmas horas e os mesmos pluviômetros. O sinal sueco descreve quatro eventos e é exploratório.
+
+### Extensão definida para a temporada italiana de 2021
+
+O filtro com vizinhos quase sempre recorre ao filtro por intensidade na rede pouco densa. A ideia a testar é permitir um raio de até 30 km, reduzindo a influência da vizinhança quando os vizinhos são distantes. Se o oitavo enlace válido estiver a uma distância `d8`, usar peso `w = min(1, (10 km / d8)²)`. Multiplicar a mediana local por `w` e misturar a tolerância local com a tolerância 1 do filtro por intensidade, com pesos `w` e `1 − w`. Permanecem o máximo de 12 vizinhos e o limite absoluto normalizado de 3. Com menos de oito vizinhos válidos em 30 km, usar o filtro por intensidade. A temporada de 2022 motivou a extensão; 2021 serve de verificação temporal com a regra congelada. Os resultados do protocolo original permanecem identificados como tais.
