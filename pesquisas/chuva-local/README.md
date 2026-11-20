@@ -37,3 +37,7 @@ OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 python piloto_openmrg.py /caminho/dos/n
 Numa retomada, dedicaria até duas horas a obter dados de mais tempestades e rodar o comparador fixo em OpenRainER com o radar bruto, preservando a independência dos pluviômetros. A triagem avança se houver eventos suficientes para reservar tempestades inteiras para avaliação. O teste compararia erro nos picos e falsos alarmes, com limiares definidos antes de abrir os eventos reservados. Se os recortes acessíveis forem insuficientes, a pesquisa deve mudar de tema. A pergunta metodológica que fica é se devemos separar a adaptação do filtro da detecção de chuva quando o radar indica zero.
 
 O agendador disponível tem frequência máxima de uma execução por hora. Nenhuma rodada automática foi criada para o intervalo solicitado de 30 minutos.
+
+## Continuação · 20 de novembro de 2026
+
+[Protocolo de validação e diário da continuação](2026-11-20-validacao.md)
