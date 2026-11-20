@@ -115,13 +115,13 @@ def masked_mean(array, mask):
     return divided(np.sum(array[mask]), mask.sum())
 
 
-def events(times, intensive):
+def events(times, intensive, *, gap_hours=6):
     ids = np.full(len(times), -1, dtype=int)
     previous = None
     event = -1
     for index in np.flatnonzero(intensive.any(axis=1)):
         stamp = times[index]
-        if previous is None or stamp - previous > np.timedelta64(6, "h"):
+        if previous is None or stamp - previous > np.timedelta64(gap_hours, "h"):
             event += 1
         ids[index] = event
         previous = stamp
