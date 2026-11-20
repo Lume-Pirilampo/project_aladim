@@ -52,13 +52,25 @@ def bounded_blackouts(level, db_above_min, *, max_minutes):
     return filled.where(~marked | short), short
 
 
-def hourly_links(links, usable, start, end, blackout_db):
+def radar_wetness(context, cml_id, start, end):
+    """Fornece ao classificador minutos chuvosos do radar no trajeto, sem ASOS."""
+    amounts = context.radar_path.sel(cml_id=cml_id).to_series()
+    start, end = pd.Timestamp(start), pd.Timestamp(end)
+    pad = pd.Timedelta(minutes=5)
+    times = pd.date_range(start - pad, end + pad, freq="min")
+    rate = amounts.reindex(times.ceil("h")).values
+    wet = pd.Series(rate > 0.01, index=times).rolling(11, center=True, min_periods=1).max()
+    return wet.loc[start:end], "radar no trajeto", 0.0
+
+
+def hourly_links(links, usable, start, end, blackout_db, *, radar_path=None):
     days = pd.date_range((start - pd.Timedelta(hours=1)).normalize(), end.normalize())
     signal = links[["rsl", "rsl_avg"]].sel(
         time=slice(days[0] - pd.Timedelta(days=1), days[-1] + pd.Timedelta(days=1))
     ).load()
     paths = links.length.to_series().rename("length").to_frame()
-    context = SimpleNamespace(links=signal, paths=paths)
+    context = SimpleNamespace(links=signal, paths=paths, radar_path=radar_path)
+    classification = "rsd" if radar_path is None else "gauge"
     by_day = []
     for i, day in enumerate(days, start=1):
         span = slice(day - pd.Timedelta(days=1), day + pd.Timedelta(days=1))
@@ -68,7 +80,8 @@ def hourly_links(links, usable, start, end, blackout_db):
         for key in links.cml_id.values[mask.any("sublink_id").values]:
             names = links.sublink_id.values[mask.sel(cml_id=key).values]
             rain = rain_chain(
-                context, key, day, sublinks=names, wet_method="rsd", blackout_db=blackout_db,
+                context, key, day, sublinks=names,
+                wet_method=classification, gauge_pad="0min", blackout_db=blackout_db,
             )[["R", "blackout"]]
             rain = rain.squeeze("cml_id", drop=True) if "cml_id" in rain.dims else rain
             sublinks.append(rain.reset_coords(drop=True).expand_dims(cml_id=[key]))
@@ -93,15 +106,20 @@ def hourly_links(links, usable, start, end, blackout_db):
     })
 
 
-def prepare_unit(radar_file, links, usable, asos, include_flag2, blackout_db):
+def prepare_unit(radar_file, links, usable, asos, include_flag2, blackout_db, *, wet_from_radar=False):
     radar = normalize_italy_radar(xr.load_dataset(radar_file)[RAIN_PRODUCT])
     start, end = (pd.Timestamp(radar.time.values[i]) for i in (0, -1))
     gauges, flags = hourly_gauges(asos, start, end, include_flag2)
     geo, _ = raster_reference(radar, links, gauges, 60, crs=NYC_CRS)
-    rates = hourly_links(links, usable, start, end, blackout_db)
+    radar_input = geo.radar_at_link if wet_from_radar else None
+    reference = patch.object(showcase, "gauge_near", radar_wetness) if wet_from_radar else nullcontext()
+    with reference:
+        rates = hourly_links(links, usable, start, end, blackout_db, radar_path=radar_input)
     common = xr.merge((geo, rates, gauges), join="inner", compat="no_conflicts")
     # Mantém todas as horas efetivamente obtidas na janela de radar.
     common = common.sel(time=radar.time.values)
+    window = np.full(common.sizes["time"], np.datetime64(start, "ns"))
+    common = common.assign_coords(window_start=("time", window))
     print(radar_file.name, dict(common.sizes), "minutos ASOS com flag 2:", flags, flush=True)
     print("Enlaces com ao menos uma hora:", int(common.link_rate.notnull().any("time").sum()), flush=True)
     return common
@@ -116,6 +134,7 @@ if __name__ == "__main__":
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--without-blackout-fill", action="store_true")
     mode.add_argument("--max-blackout-min", type=int)
+    parser.add_argument("--wet-from-radar", action="store_true")
     args = parser.parse_args()
     if args.max_blackout_min is not None and args.max_blackout_min < 1:
         parser.error("--max-blackout-min deve ser positivo")
@@ -132,7 +151,7 @@ if __name__ == "__main__":
         links = project_links(links, crs=NYC_CRS)
         outputs = [
             prepare_unit(f, links, eligible, asos, args.include_flag2,
-                         None if args.without_blackout_fill else 6)
+                         None if args.without_blackout_fill else 6, wet_from_radar=args.wet_from_radar)
             for f in args.radar
         ]
     pairs = xr.concat(outputs, dim="time", data_vars="minimal", coords="minimal", compat="equals").sortby("time")
