@@ -22,9 +22,10 @@ python avaliar_nyc.py replay-0min.nc 'fim da hora' replay-0min.csv
 python avaliar_nyc.py replay-30min.nc 'mais 30 min' replay-30min.csv
 python avaliar_nyc.py replay-retrospectivo.nc 'retrospectivo' replay-retrospectivo.csv
 python avaliar_pluviometros_comunitarios.py "$NYC_PWS" maio-junho.nc pws.csv radar/2024-05.nc radar/2024-06.nc
+python checar_pluviometros_comunitarios.py "$NYC_PWS" maio-junho.nc pws-robustez.csv radar/2024-05.nc radar/2024-06.nc
 ```
 
-Para obter os quatro casos da lista dos autores, execute `obter_radar_nyc.py` sem recorte de calendário, passe os quatro NetCDF resultantes a `preparar_nyc.py` e use `avaliar_nyc.py --catalog "$catalogo"` após os argumentos posicionais. Repetir a preparação com `--without-blackout-fill` ou `--max-blackout-min 30` aplica as duas sensibilidades de preenchimento.
+Para obter os quatro casos da lista dos autores, execute `obter_radar_nyc.py` sem recorte de calendário, passe os quatro NetCDF resultantes a `preparar_nyc.py` e use `avaliar_nyc.py --catalog "$catalogo"` após os argumentos posicionais. Passe os mesmos NetCDF de radar junto ao arquivo de pares dos eventos para `avaliar_pluviometros_comunitarios.py` se quiser repetir a avaliação de estações comunitárias nos casos do catálogo. Repetir a preparação com `--without-blackout-fill` ou `--max-blackout-min 30` aplica as duas sensibilidades de preenchimento.
 
 ```bash
 python obter_radar_nyc.py "$catalogo" radar --interval abr '2024-04-05 01:00' '2024-05-01 00:00'
