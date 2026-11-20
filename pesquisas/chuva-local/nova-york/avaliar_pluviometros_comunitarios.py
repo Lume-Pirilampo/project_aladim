@@ -48,6 +48,16 @@ def load_gauges(path, times, jitter_minutes):
     return out.sel(id=out.notnull().any("time") & np.isfinite(out.lat) & np.isfinite(out.lon))
 
 
+def load_radar(paths):
+    radar = xr.concat(
+        [normalize_italy_radar(xr.load_dataset(path)[RAIN_PRODUCT]) for path in paths],
+        dim="time", coords="minimal", compat="equals",
+    ).sortby("time")
+    if not radar.get_index("time").is_unique:
+        raise ValueError("Janelas de radar sobrepostas")
+    return radar
+
+
 def prepare_panel(raw_links, radar, gauges):
     geo, _ = raster_reference(radar, raw_links, gauges, 60, crs=NYC_CRS)
     path = geo.radar_at_link.sel(time=raw_links.time)
@@ -99,12 +109,7 @@ if __name__ == "__main__":
     parser.add_argument("radar", type=Path, nargs="+")
     args = parser.parse_args()
     links = xr.load_dataset(args.pairs).drop_dims("id")
-    radar = xr.concat(
-        [normalize_italy_radar(xr.load_dataset(path)[RAIN_PRODUCT]) for path in args.radar],
-        dim="time", coords="minimal", compat="equals",
-    ).sortby("time")
-    if not radar.get_index("time").is_unique:
-        raise ValueError("Janelas de radar sobrepostas")
+    radar = load_radar(args.radar)
     rows = []
     for tolerance in (2, 1):
         gauges = load_gauges(args.pws, links.get_index("time"), tolerance)
