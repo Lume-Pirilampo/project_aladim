@@ -8,7 +8,7 @@ from scipy.spatial.distance import cdist
 import xarray as xr
 
 from avaliar_pluviometros_comunitarios import (
-    RAIN_PRODUCT, active_distance, load_gauges, normalize_italy_radar, prepare_panel,
+    active_distance, load_gauges, load_radar, prepare_panel,
 )
 from avaliar_validacao import coordinates, evaluate, events, gauge_coverage, predict
 
@@ -98,12 +98,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     asos = xr.load_dataset(args.asos_pairs)
     links = asos.drop_dims("id")
-    radar = xr.concat(
-        [normalize_italy_radar(xr.load_dataset(path)[RAIN_PRODUCT]) for path in args.radar],
-        dim="time", coords="minimal", compat="equals",
-    ).sortby("time")
-    if not radar.get_index("time").is_unique:
-        raise ValueError("Janelas de radar sobrepostas")
+    radar = load_radar(args.radar)
     rows = []
     for tolerance in (2, 1):
         gauges = load_gauges(args.pws, links.get_index("time"), tolerance)
