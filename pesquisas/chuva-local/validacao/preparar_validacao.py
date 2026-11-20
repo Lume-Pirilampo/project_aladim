@@ -18,13 +18,13 @@ CRS = "EPSG:32632"
 STEREO = "+proj=stere +lat_ts=60 +ellps=bessel +lon_0=14 +lat_0=90"
 
 
-def projected(ds, lon, lat):
-    return plg.spatial.project_point_coordinates(ds[lon], ds[lat], CRS)
+def projected(ds, lon, lat, crs=CRS):
+    return plg.spatial.project_point_coordinates(ds[lon], ds[lat], crs)
 
 
-def project_links(links):
-    start_x, start_y = projected(links, "site_0_lon", "site_0_lat")
-    end_x, end_y = projected(links, "site_1_lon", "site_1_lat")
+def project_links(links, *, crs=CRS):
+    start_x, start_y = projected(links, "site_0_lon", "site_0_lat", crs)
+    end_x, end_y = projected(links, "site_1_lon", "site_1_lat", crs)
     return links.assign_coords(
         site_0_x=start_x, site_0_y=start_y, site_1_x=end_x, site_1_y=end_y,
         link_x=(start_x + end_x) / 2, link_y=(start_y + end_y) / 2,
@@ -81,9 +81,9 @@ def radar_slices(radar, minutes, weights, cell_indices):
     )
 
 
-def raster_reference(radar, links, gauges, minutes):
-    grid_x, grid_y = projected(radar, "lon", "lat")
-    gauge_x, gauge_y = projected(gauges, "lon", "lat")
+def raster_reference(radar, links, gauges, minutes, *, crs=CRS):
+    grid_x, grid_y = projected(radar, "lon", "lat", crs)
+    gauge_x, gauge_y = projected(gauges, "lon", "lat", crs)
     grid_xy = np.column_stack((grid_x.values.ravel(), grid_y.values.ravel()))
     distances, cells = cKDTree(grid_xy).query(np.column_stack((gauge_x, gauge_y)))
     rows, cols = np.unravel_index(cells, grid_x.shape)
