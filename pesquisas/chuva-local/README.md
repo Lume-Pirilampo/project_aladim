@@ -43,3 +43,9 @@ O agendador disponível tem frequência máxima de uma execução por hora. Nenh
 [Protocolo de validação e diário da continuação](2026-11-20-validacao.md)
 
 [Experimentos em Nova York](2026-11-20-nova-york.md) · [Reprodução da análise europeia e figura](validacao/)
+
+### Resultado da janela de validação
+
+Os filtros adaptativos trouxeram ganhos pequenos frente ao limite de 10 mm/h em alguns recortes. Limites fixos alternativos igualaram ou superaram esses ganhos nas comparações europeias. Em Nova York, a vantagem da fusão em recortes escolhidos por tempestade se desfez nos dois meses completos. Nesse calendário, o radar sozinho teve menor erro tanto nos pluviômetros oficiais quanto nos comunitários perto dos enlaces.
+
+A evidência favorece encerrar a hipótese de superioridade geral dos filtros testados. As comparações por evento e fase mostram onde a fusão pode merecer uma investigação distinta. Ver [critérios, resultados e limites na Europa](2026-11-20-validacao.md), [teste de transferência em Nova York](2026-11-20-nova-york.md) e [código para reprodução em Nova York](nova-york/).
