@@ -57,3 +57,9 @@ O filtro com vizinhos quase sempre recorre ao filtro por intensidade na rede pou
 ### Teste com o mesmo orçamento de falsos alarmes
 
 Comparar todos os métodos com o corte de previsão de 5 mm mistura a qualidade da estimativa com a diferença de calibração. Em um teste operacional exploratório, manter 5 mm como referência observada e calibrar o corte de previsão de cada método para no máximo 25 falsos alarmes por 10 mil observações abaixo de 5 mm. Escolher o menor corte que atenda a esse orçamento, com desempate conservador, usando somente o verão italiano de 2022. Congelar os cortes e aplicá-los a 2021. Reportar a taxa de detecção, a taxa efetiva de falsos alarmes e a diferença de detecção frente ao fixo de 10 mm/h por reamostragem de eventos. Esse orçamento dá escala ao experimento. Os cortes são de avaliação meteorológica e não limiares de alerta de enxurrada.
+
+### Filtros em krigagem com deriva externa
+
+Nos 33 pares fortes do agosto sueco, o campo aditivo arquivado pelos autores reproduziu o erro de 1,584 mm do comparador local. O campo publicado de krigagem em blocos com deriva externa de radar (KED) teve erro de 1,223 mm, com nove falsos alarmes nos pares comuns, ante 18 do aditivo. O ganho de trocar o interpolador nesse recorte é maior que o ganho de mudar apenas o filtro aditivo.
+
+Vou testar os filtros também no interpolador KED do próprio `mergeplg` nas células dos pluviômetros, com o variograma esférico publicado (alcance de 30 km, efeito pepita de 0,3, patamar parcial de 0,7), até 70 vizinhos e geometria dos enlaces em blocos ou pontos. As regras de exclusão são as mesmas já escritas. A verificação numérica contra o KED em mapa completo precede o uso como comparador. [Campos dos autores](https://doi.org/10.5281/zenodo.23367571)
