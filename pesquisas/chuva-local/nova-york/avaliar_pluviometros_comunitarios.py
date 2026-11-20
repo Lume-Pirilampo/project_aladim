@@ -48,15 +48,18 @@ def load_gauges(path, times, jitter_minutes):
     return out.sel(id=out.notnull().any("time") & np.isfinite(out.lat) & np.isfinite(out.lon))
 
 
-def evaluate_network(raw_links, radar, gauges, jitter_minutes):
+def prepare_panel(raw_links, radar, gauges):
     geo, _ = raster_reference(radar, raw_links, gauges, 60, crs=NYC_CRS)
     path = geo.radar_at_link.sel(time=raw_links.time)
     xr.testing.assert_allclose(
         path.reset_coords(drop=True), raw_links.radar_at_link.reset_coords(drop=True)
     )
-    ds = xr.merge(
+    return xr.merge(
         (geo, raw_links[["link_rate"]], gauges), join="inner", compat="no_conflicts"
     )
+
+
+def evaluate_network(ds, jitter_minutes):
     estimates = predict(ds)
     nearest = active_distance(ds)
     strong = (ds.gauge_rate.transpose("time", "id").values >= 5)
@@ -81,7 +84,7 @@ def evaluate_network(raw_links, radar, gauges, jitter_minutes):
     group = (nearest <= 5000) & nearest_all & strong
     near = np.abs(raw - ds.gauge_rate.transpose("time", "id").values)[group]
     print(
-        f"Tolerância {jitter_minutes} min, {len(gauges.id)} estações com cobertura. "
+        f"Tolerância {jitter_minutes} min, {len(ds.id)} estações com cobertura. "
         f"Erro mediano do radar nos {len(near)} pares fortes próximos: "
         f"{np.median(near) if len(near) else float('nan'):.3f} mm", flush=True
     )
@@ -105,7 +108,7 @@ if __name__ == "__main__":
     rows = []
     for tolerance in (2, 1):
         gauges = load_gauges(args.pws, links.get_index("time"), tolerance)
-        rows.extend(evaluate_network(links, radar, gauges, tolerance))
+        rows.extend(evaluate_network(prepare_panel(links, radar, gauges), tolerance))
     report = pd.DataFrame(rows)
     report.to_csv(args.output, index=False, float_format="%.8f")
     print(report[["jitter_minutos", "recorte", "metodo", "pluviometros", "pares", "pares_5",
