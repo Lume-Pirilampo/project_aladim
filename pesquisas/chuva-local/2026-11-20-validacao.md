@@ -32,3 +32,9 @@ No recorte sueco usado para desenvolvimento, a avaliação restrita às células
 A comparação entre Suécia e Itália muda o clima, o radar e a rede ao mesmo tempo. Para isolar o papel da densidade, vou repetir a comparação removendo enlaces em cada rede, mantendo os mesmos pluviômetros, horas e tempestades. Serão 24 sequências de remoção aleatória com semente 20261120, com subconjuntos aninhados de 10%, 25%, 50% e 75% dos enlaces. A rede inteira será a referência de 100%. A análise vai usar agosto na Suécia e a janela italiana completa.
 
 A remoção se aplica à interpolação e aos vizinhos do filtro. O conjunto de pluviômetros elegíveis é o da rede inteira, para a perda de cobertura aparecer no resultado. Vou medir a parcela de observações enlace–hora que ainda têm pelo menos oito outros enlaces válidos em 10 km e o erro dos filtros nessas redes reduzidas. A dispersão entre as 24 remoções descreve esse cenário artificial. Os intervalos de incerteza por tempestade ficam na comparação principal.
+
+### Controle temporal adicional
+
+Os dois filtros adaptativos permanecem congelados. O limite de 10 mm/h venceu o de 5 mm/h no desenvolvimento sueco (junho e julho) e será a comparação de referência. Agosto teve apenas quatro eventos pelo critério definido, com 33 pares de chuva forte. O filtro com vizinhos marcou erro de 1,501 mm contra 1,584 mm no limite fixo. A fusão sem filtro marcou 1,465 mm nesse recorte. Esse primeiro número, sozinho, permite apenas um parecer exploratório.
+
+Antes de consultar as métricas italianas, iniciei o download de junho a agosto de 2021 para verificar se o resultado de 2022 se repete sob outra temporada na mesma rede. A comparação acrescenta variação temporal, e a Suécia já foi usada para congelar o comparador. Os campos de fusão publicados pelos autores também serão medidos sobre a mesma referência para situar a utilidade prática de trabalhar apenas com interpolação aditiva.
