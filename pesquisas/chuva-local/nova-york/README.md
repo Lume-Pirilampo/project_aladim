@@ -46,3 +46,11 @@ python distancias_sinal.py maio-junho.nc abril-julho.nc distancias.csv
 ```
 
 [Relato com critérios e resultados](../2026-11-20-nova-york.md) · [Métricas iniciais](nyc-metricas-iniciais.csv) · [Métricas complementares](nyc-metricas-complementares.csv) · [Cortes e falsos alarmes](nyc-cortes-de-alerta.csv) · [Disponibilidade de sinal](nyc_disponibilidade_mes.csv) · [Pluviômetros comunitários](nyc-pluviometros-comunitarios.csv)
+
+O teste de transferência de cortes em pluviômetros comunitários usa os pares de maio–junho e de março já preparados acima.
+
+```bash
+python calibrar_alertas_comunitarios.py "$NYC_PWS" maio-junho.nc marco-sinal.nc pws-cortes.csv \
+  --calibration-radar radar/2024-05.nc radar/2024-06.nc \
+  --verification-radar radar/mar1.nc radar/mar2.nc
+```
