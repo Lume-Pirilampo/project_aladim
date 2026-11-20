@@ -13,7 +13,7 @@ from avaliar_validacao import METHODS, adaptive_masks, coordinates, evaluate
 MODEL = {"nugget": 0.3, "psill": 0.7, "range": 30_000}
 
 
-def predict_ked(ds, *, full_line, extended=False):
+def predict_ked(ds, *, full_line, extended=False, directional=False):
     links = coordinates(ds, "link_x", "link_y")
     target = coordinates(ds, "target_x", "target_y")
     variogram = bk_functions.construct_variogram(
@@ -32,6 +32,10 @@ def predict_ked(ds, *, full_line, extended=False):
     estimates = ds.link_rate.transpose("time", "cml_id").values
     raw = ds.radar_at_gauge.transpose("time", "id").values
     names = METHODS + (("alcance_adaptativo",) if extended else ())
+    if directional:
+        q = ds.link_disagreement.transpose("time", "cml_id").values
+        uncertainty = 0.3 * (1 + np.minimum(9, np.nan_to_num(q, nan=0) ** 2))
+        names += ("incerteza_dupla",)
     models = {key: raw.copy() for key in names}
 
     for hour, (path_rain, link_rain, gauge_cell) in enumerate(zip(path, estimates, raw, strict=True)):
@@ -47,11 +51,14 @@ def predict_ked(ds, *, full_line, extended=False):
                 residual, path_rain, valid, neighbors, neighbor_distances, expanded=True
             )
             passes += (radius,)
+        if directional:
+            passes += (passes[2],)
         radar = np.where(gauge_cell > 0.01, gauge_cell, 0)
         for key, keep in zip(names[1:], passes, strict=True):
             if keep.sum() <= 3:
                 continue
-            merged, _ = interpolation(radar, np.where(keep, link_rain, np.nan), path_rain)
+            sigma = uncertainty[hour] if key == "incerteza_dupla" else None
+            merged, _ = interpolation(radar, np.where(keep, link_rain, np.nan), path_rain, sigma)
             merged = np.where(radar > 0, np.clip(merged, 0, 150), 0)
             merged = np.where(np.isfinite(merged), merged, radar)
             models[key][hour] = np.where(np.isfinite(gauge_cell), merged, np.nan)
@@ -65,11 +72,15 @@ if __name__ == "__main__":
     parser.add_argument("geometry", choices=("ponto", "bloco"))
     parser.add_argument("output", type=Path)
     parser.add_argument("--extended", action="store_true")
+    parser.add_argument("--directional", action="store_true", help="Usa discordância entre sentidos")
     args = parser.parse_args()
     ds = xr.load_dataset(args.pairs)
     if args.region == "SE":
         ds = ds.sel(time=ds.time > np.datetime64("2015-08-01T00:00"))
-    result = predict_ked(ds, full_line=(args.geometry == "bloco"), extended=args.extended)
+    result = predict_ked(
+        ds, full_line=(args.geometry == "bloco"), extended=args.extended,
+        directional=args.directional,
+    )
     records = evaluate(
         ds, result, "fixo_10", np.ones(ds.sizes["time"], dtype=bool),
         f"{args.region}, KED {args.geometry}", 20_000,
