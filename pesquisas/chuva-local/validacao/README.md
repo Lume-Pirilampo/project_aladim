@@ -52,3 +52,16 @@ python diagnosticar_enlaces.py italia2021.nc 'IT 2021' italia2021-enlaces.csv
 ![Erro frente ao limite fixo de 10 mm/h nos três recortes e disponibilidade de vizinhos sob redução da rede](limites-e-densidade.svg)
 
 No gráfico da esquerda, os pontos são os limites fixos da grade de sensibilidade. O da direita mostra a mediana das remoções aleatórias na fração de observações enlace–hora que conservou oito vizinhos válidos em 10 km. [Código da figura](figura_validacao.py)
+
+### Mediana espacial na correção multiplicativa
+
+Use os pares preparados de cada base e o mesmo rótulo no relatório. O rótulo `SE agosto` seleciona agosto de 2015 para avaliação. O parâmetro `--period 24` repete a análise com fatores de 24 horas.
+
+```bash
+python testar_mediana_multiplicativa.py suecia_verao_pares.nc 'SE agosto' mediana-se.csv
+python testar_mediana_multiplicativa.py italia_2021_pares.nc 'IT 2021' mediana-it-2021.csv
+python testar_mediana_multiplicativa.py italia_verao_pares.nc 'IT 2022' mediana-it-2022.csv
+python testar_mediana_multiplicativa.py ../nova-york/maio-junho.nc 'NYC maio–junho' mediana-nyc.csv
+```
+
+[Métricas horárias e diárias](mediana-multiplicativa.csv)
