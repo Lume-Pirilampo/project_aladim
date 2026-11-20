@@ -45,3 +45,7 @@ Na faixa publicada pela Archeophone, duas passagens que pareciam oferecer uma se
 ## Pergunta em aberto
 
 O ponto de maior velocidade cai na mesma posição em voltas diferentes? A medição com diapasão mostra a variação dentro de uma volta. A repetição entre voltas é a próxima evidência que poderia ajudar a interpretar *Jeune Jouvencelle*.
+
+## Segunda série · Chuva intensa em escala local
+
+Quando o radar e os enlaces das operadoras divergem, como saber se a diferença é um erro de medição ou um pico de chuva que o radar suavizou? O primeiro teste usou oito dias de medições públicas de Gotemburgo e comparou dois limites fixos com os registros de dez pluviômetros. [Diário da pesquisa, resultados e código](pesquisas/chuva-local/README.md)
