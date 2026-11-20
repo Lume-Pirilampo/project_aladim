@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from avaliar_validacao import confidence_by_event, events, gauge_coverage, predict
+from avaliar_validacao import confidence_by_event, divided, events, gauge_coverage, predict
 
 TARGET_RATE = 0.0025
 REFERENCE_DEPTH = 5
@@ -44,9 +44,9 @@ def count_row(mode, method, cut, alarms, negatives, strong, base_alarms, event_l
         "recorte": mode, "metodo": method, "corte_previsto_mm": cut,
         "fortes_observados": int(strong.sum()), "nao_fortes_observados": int(negatives.sum()),
         "detectados": detections, "falsos_alarmes": false_alarms,
-        "taxa_deteccao": detections / strong.sum(),
-        "falsos_alarmes_por_10mil": 10_000 * false_alarms / negatives.sum(),
-        "delta_deteccao_vs_fixo": float(delta[strong].mean()),
+        "taxa_deteccao": divided(detections, strong.sum()),
+        "falsos_alarmes_por_10mil": 10_000 * divided(false_alarms, negatives.sum()),
+        "delta_deteccao_vs_fixo": divided(float(delta[strong].sum()), strong.sum()),
         "delta_ic025": ci[0], "delta_ic975": ci[1],
     }
 
