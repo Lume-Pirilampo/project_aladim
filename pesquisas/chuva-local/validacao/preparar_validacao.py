@@ -266,21 +266,27 @@ def classify_and_convert(links, path_rate, minutes):
             pol=group.polarization,
         )
         grouped = rain.resample(**HOURLY)
-        aggregate = grouped.mean().where(grouped.count() >= 30).mean("sublink_id")
+        aggregate = grouped.mean().where(grouped.count() >= 30)
         aggregate_parts.append(aggregate)
-    return xr.concat(aggregate_parts, dim="cml_id").transpose("time", "cml_id").rename("link_rate")
+    return xr.concat(aggregate_parts, dim="cml_id").transpose("time", "cml_id", "sublink_id")
 
 
 def output_pairs(radar, links, gauges, minutes, output, *, already_derived=False):
     links = project_links(links)
     print(f"Radar: {radar.sizes['time']} quadros; enlaces iniciais: {links.sizes['cml_id']}", flush=True)
     geo, along_link = raster_reference(radar, links, gauges, minutes)
+    products = []
     if already_derived:
         interval = links.R.isel(sublink_id=0).drop_vars("sublink_id").resample(**HOURLY)
         rate = interval.mean().where(interval.count() >= 180).rename("link_rate")
     else:
-        rate = classify_and_convert(links, along_link, minutes)
-    pairs = xr.merge((geo.sel(cml_id=rate.cml_id), rate.reset_coords(drop=True), gauges.rename("gauge_rate")), join="inner")
+        by_direction = classify_and_convert(links, along_link, minutes)
+        rate = by_direction.mean("sublink_id").rename("link_rate")
+        difference = np.abs(by_direction.diff("sublink_id").isel(sublink_id=0, drop=True))
+        disagreement = (difference / np.sqrt(1 + rate)).rename("link_disagreement")
+        products.append(disagreement.reset_coords(drop=True))
+    products.extend((geo.sel(cml_id=rate.cml_id), rate.reset_coords(drop=True), gauges.rename("gauge_rate")))
+    pairs = xr.merge(products, join="inner")
     pairs = pairs.dropna("time", how="all", subset=["gauge_rate"])
     pairs = pairs.transpose("time", "cml_id", "id", missing_dims="ignore")
     pairs.to_netcdf(output, encoding={name: {"zlib": True, "complevel": 3} for name in pairs.data_vars})
@@ -316,6 +322,16 @@ def load_italy(path, mode):
     )
 
 
+def sweden_radar(data, *, zr_exponent=5 / 8):
+    radar_ds = xr.open_dataset(data / "radar/radar.nc")
+    x_mesh, y_mesh = np.meshgrid(radar_ds.x.values, radar_ds.y.values)
+    convert = Transformer.from_crs(STEREO, "EPSG:4326", always_xy=True)
+    mesh_lon, mesh_lat = convert.transform(x_mesh, y_mesh)
+    return ((10 ** (radar_ds.data / 10) / 200) ** zr_exponent).assign_coords(
+        lon=(("y", "x"), mesh_lon), lat=(("y", "x"), mesh_lat)
+    )
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", help="sweden, sweden-sample, italy, italy-2021, italy-sample ou mês italiano AAAAMM")
@@ -325,13 +341,7 @@ if __name__ == "__main__":
     if arg.mode == "sweden":
         links = sweden_links(arg.data)
         gauges = sweden_gauges(arg.data)
-        radar_ds = xr.open_dataset(arg.data / "radar/radar.nc")
-        x_mesh, y_mesh = np.meshgrid(radar_ds.x.values, radar_ds.y.values)
-        convert = Transformer.from_crs(STEREO, "EPSG:4326", always_xy=True)
-        mesh_lon, mesh_lat = convert.transform(x_mesh, y_mesh)
-        radar = ((10 ** (radar_ds.data / 10) / 200) ** (5 / 8)).assign_coords(
-            lon=(("y", "x"), mesh_lon), lat=(("y", "x"), mesh_lat)
-        )
+        radar = sweden_radar(arg.data)
         output_pairs(radar, links, gauges, 5, arg.output)
     elif arg.mode == "sweden-sample":
         output_pairs(
