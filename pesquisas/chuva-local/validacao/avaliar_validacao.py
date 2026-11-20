@@ -16,7 +16,7 @@ def coordinates(ds, x, y):
     return np.column_stack((ds[y].values, ds[x].values))
 
 
-def gauge_coverage(ds):
+def gauge_to_link_distance(ds):
     points = coordinates(ds, "gauge_x", "gauge_y")
     start = coordinates(ds, "site_0_x", "site_0_y")
     end = coordinates(ds, "site_1_x", "site_1_y")
@@ -28,7 +28,11 @@ def gauge_coverage(ds):
         out=np.zeros(origin_to_points.shape[:2]), where=squared_length > 0,
     )
     projected = start + np.clip(fraction, 0, 1)[:, :, None] * lines
-    return np.linalg.norm(points[:, None, :] - projected, axis=2).min(axis=1)
+    return np.linalg.norm(points[:, None, :] - projected, axis=2)
+
+
+def gauge_coverage(ds):
+    return gauge_to_link_distance(ds).min(axis=1)
 
 
 def adaptive_masks(residual, path_rain, valid, neighbor_order, neighbor_distances, *, expanded=False):
