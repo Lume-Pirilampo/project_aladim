@@ -79,3 +79,19 @@ No verão de 2021, foram 43 eventos e 1.044 pares hora–pluviômetro com pelo m
 Ao calibrar os cortes de previsão em 2022 e aplicá-los a 2021, o filtro por intensidade detectou 852 de 1.044 chuvas fortes, contra 840 do limite fixo. Foram 15,56 contra 15,13 falsos alarmes por 10 mil observações sem chuva forte. A diferença emparelhada de detecção foi de 1,15 ponto percentual, com intervalo de cerca de 0,00 a 2,08 pontos. Nessa comparação, o radar sozinho detectou 748 casos com 10,11 falsos alarmes por 10 mil. O orçamento era igual na calibração, e as taxas realizadas mudaram na outra temporada.
 
 O KED coincidiu com o mapa completo a menos de 0,0000004 mm em 75 comparações por geometria no recorte de conferência. Na Itália, o KED em blocos com limite de 10 mm/h deu 5,331 mm em 2022 e 4,960 mm em 2021. O filtro por intensidade deu 5,348 e 5,004 mm. A adaptação ensaiada no aditivo não transferiu para esse interpolador. Esses resultados reduzem a prioridade de perseguir a regra geométrica ensaiada; a incerteza medida pelos dois sentidos do enlace é uma hipótese diferente. [Código publicado](validacao/)
+
+### Onde a comparação mudou de direção
+
+A ponderação pelos dois sentidos do enlace teve efeito pequeno no KED em blocos. O erro de 4,960 mm em 2021 passou a 4,962 mm, com intervalo emparelhado de −0,022 a +0,028 mm. Em 2022, o erro passou de 5,331 para 5,352 mm. Entre os pluviômetros a até 1 km de um enlace de até 3 km, só havia 18 pares fortes em 2021 e 32 em 2022 com os dois sentidos válidos. Nessa amostra, a discordância sozinha não ordenou consistentemente o erro do enlace frente ao radar.
+
+Em seguida, abri o comparador para limites fixos entre 2 e 50 mm/h e a opção sem filtro. Essa comparação retrospectiva mostra quanto o limite de 10 mm/h deixava margem para melhora.
+
+| Recorte | Limite 10 | Melhor fixo no recorte | Melhor limite por evento, escolhido depois |
+| --- | ---: | ---: | ---: |
+| Suécia, agosto | 1,584 | 1,449 (20 mm/h) | 1,435 |
+| Itália, verão de 2022 | 5,118 | 4,875 (50 mm/h) | 4,775 |
+| Itália, verão de 2021 | 4,369 | 4,345 (20 mm/h) | 4,134 |
+
+Na Itália de 2022, o limite fixo de 50 mm/h reduziu mais o erro que qualquer filtro adaptativo avaliado. Em 2021, esse mesmo limite marcou 4,384 mm. A última coluna usa os pluviômetros para escolher o limite depois de cada tempestade e representa uma margem otimista dentro da grade de opções testada. Ela não estima o desempenho de uma regra executável em tempo real. [Métricas e código](validacao/)
+
+**Decisão desta etapa.** Os pequenos ganhos frente a 10 mm/h não sustentam propor os filtros como melhoria geral. A escala de avaliação, a densidade da rede e o comparador mudam o resultado. A próxima investigação procura um teste de transferência mais distante, com uma rede comunitária urbana de outra faixa de frequência. A primeira verificação é se o radar disponível pode ser comparado com pluviômetros que ficaram fora da sua correção.
