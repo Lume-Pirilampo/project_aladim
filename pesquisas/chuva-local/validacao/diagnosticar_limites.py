@@ -12,17 +12,21 @@ from avaliar_validacao import coordinates, events, gauge_coverage, masked_mean
 LIMITS = (2, 3, 5, 7.5, 10, 12.5, 15, 20, 30, 50, np.inf)
 
 
-def sweep(ds):
+def sweep(ds, limits=LIMITS, *, protect_censored=False):
     link_xy = coordinates(ds, "link_x", "link_y")
     target = coordinates(ds, "target_x", "target_y")
     interpolation = Invdisttree(link_xy)
     radar = ds.radar_at_gauge.transpose("time", "id").values
     path = ds.radar_at_link.transpose("time", "cml_id").values
     links = ds.link_rate.transpose("time", "cml_id").values
-    forecasts = {limit: radar.copy() for limit in LIMITS}
+    forecasts = {limit: radar.copy() for limit in limits}
+    if protect_censored:
+        marked = ds.filled_minutes.transpose("time", "cml_id").values > 0
     for i, (ref, link, cell) in enumerate(zip(path, links, radar, strict=True)):
         residual = link - ref
         good = np.isfinite(residual) & (ref > 0)
+        if protect_censored:
+            good &= (~marked[i]) | (residual >= 0)
         if good.sum() <= 3:
             continue
         wet = np.where(cell > 0.01, cell, 0)
