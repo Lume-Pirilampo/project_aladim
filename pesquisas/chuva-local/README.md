@@ -41,3 +41,5 @@ O agendador disponível tem frequência máxima de uma execução por hora. Nenh
 ## Continuação · 20 de novembro de 2026
 
 [Protocolo de validação e diário da continuação](2026-11-20-validacao.md)
+
+[Experimentos em Nova York](2026-11-20-nova-york.md) · [Reprodução da análise europeia e figura](validacao/)
